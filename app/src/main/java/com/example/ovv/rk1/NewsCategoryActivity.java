@@ -1,5 +1,6 @@
 package com.example.ovv.rk1;
 
+import android.app.IntentService;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,7 +15,7 @@ import ru.mail.weather.lib.Topics;
 
 public class NewsCategoryActivity extends AppCompatActivity {
     private static final String TAG = NewsCategoryActivity.class.getSimpleName();
-    String[] topics;
+    private String[] curency = {"USD", "RUB"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,24 +24,23 @@ public class NewsCategoryActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_news_category_a);
 
-        final Storage storage = Storage.getInstance(this);
+        final myStorage storage = myStorage.getInstance(this);
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.category_linear_layout);
 
-        topics = Topics.ALL_TOPICS;
-        for (int i = 0; i < topics.length; i++) {
+        for (int i = 0; i < curency.length; i++) {
             final Button button = new Button(this);
 
             ActionBar.LayoutParams layoutParams = new ActionBar.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
             button.setLayoutParams(layoutParams);
-            button.setText(topics[i]);
+            button.setText(curency[i]);
 
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String topics = button.getText().toString();
-                    storage.saveCurrentTopic(topics);
+                    String currency = button.getText().toString();
+                    storage.saveString(NewsIntentService.STORAGE_CURRENCY, currency);
                     finish();
                 }
             });

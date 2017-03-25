@@ -1,19 +1,22 @@
 package com.example.ovv.rk1;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.InputStream;
+
+import android.content.SharedPreferences;
+import android.net.Uri;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import android.app.IntentService;
 import android.content.Intent;
-import android.content.Context;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.IOException;
-import java.util.Hashtable;
-import java.util.Map;
 
 import ru.mail.weather.lib.News;
-import ru.mail.weather.lib.NewsLoader;
 import ru.mail.weather.lib.Storage;
 
 
@@ -22,16 +25,20 @@ public class NewsIntentService extends IntentService {
         super("NewsIntentService");
     }
 
+    private final static String API_KEY = "5s4gTp3TqOmsh7ZiGvYJa4ZbOwFjp1bhN4ZjsnsE4WgnFenOyM";
+    private final static String METHOD_URL = "https://community-bitcointy.p.mashape.com/average/";
+
+    public static final String EXTRA_NEWS_RESULT_RECEIVER = "com.example.ovv.rk1.RECEIVER";
     private static final String TAG = NewsIntentService.class.getSimpleName();
     public static final String ACTION_GET_NEWS = "com.example.ovv.rk1.action.GET_NEWS";
-    public final static String EXTRA_NEWS_RESULT_RECEIVER = "extra.EXTRA_YODA_RESULT_RECEIVER";
 
     public final static String EXTRA_NEWS_RESULT = "extra.EXTRA_NEWS_RESULT";
     public final static int RESULT_SUCCESS = 1;
-    public final static String EXTRA_NEWS_NAME_RESULT = "extra.EXTRA_NEWS_NAME_RESULT";
-    public final static String EXTRA_NEWS_TEXT_RESULT = "extra.EXTRA_NEWS_TEXT_RESULT";
-    public final static String EXTRA_NEWS_DATE_RESULT = "extra.EXTRA_NEWS_DATE_RESULT";
 
+    public final static String STORAGE_PRICE = "PRICE";
+    public final static String STORAGE_CURRENCY = "currency";
+    public final static String EXTRA_PRICE = "EXTRA_PRICE";
+    public final static String EXTRA_CURRENCY = "EXTRA_CURRENCY";
 
 
     @Override
@@ -46,46 +53,53 @@ public class NewsIntentService extends IntentService {
         }
     }
 
-    private Bundle loadData(String newsCategory) {
+    private Bundle loadData() {
         Log.e(TAG, "loadData()");
-
-        Storage storage = Storage.getInstance(this);
         Bundle data = new Bundle();
+        myStorage storage = myStorage.getInstance(this);
+        String saved_currency = storage.loadString(STORAGE_CURRENCY);
         try {
-            NewsLoader loader = new NewsLoader();
+            final String uri = Uri.parse(METHOD_URL + saved_currency)
+                    .buildUpon()
+                    .build()
+                    .toString();
 
-            News news = loader.loadNews(newsCategory);
+            HttpURLConnection conn = (HttpURLConnection) new URL(uri).openConnection();
+            conn.setReadTimeout(10000);
+            conn.setConnectTimeout(15000);
+            conn.setRequestMethod("GET");
+            conn.setDoInput(true);
+            conn.setRequestProperty("X-Mashape-Key", API_KEY);
+            conn.setRequestProperty("Accept", "text/plain");
+            conn.connect();
+            int responseCode = conn.getResponseCode();
+            InputStream  input_stream = conn.getInputStream();
 
-            storage.saveNews(news);
-
-            data.putString(EXTRA_NEWS_NAME_RESULT, news.getTitle());
-            data.putString(EXTRA_NEWS_TEXT_RESULT, news.getBody());
-            data.putLong(EXTRA_NEWS_DATE_RESULT, news.getDate());
+            if(responseCode == HttpURLConnection.HTTP_OK) {
+                String result = inputStreamToString(input_stream);
+                Log.v("CatalogClient", result);
+                storage.saveString(STORAGE_PRICE, result);
+            }
             return data;
         } catch (IOException ex) { // нет интернета грузим из кэша
-            Log.e(TAG, ex.getMessage());
-            data = getSavedData();
             return data;
         }
     }
 
-    private Bundle getSavedData() {
-        Log.e(TAG, "getSavedData()");
-        Bundle data = new Bundle();
-        Storage storage = Storage.getInstance(this);
-        News news = storage.getLastSavedNews();
-        data.putString(EXTRA_NEWS_NAME_RESULT, news.getTitle());
-        data.putString(EXTRA_NEWS_TEXT_RESULT, news.getBody());
-        data.putLong(EXTRA_NEWS_DATE_RESULT, news.getDate());
-        return data;
+    private static String inputStreamToString(final InputStream is) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder stringBuilder = new StringBuilder();
+        String line;
+        while((line = bufferedReader.readLine()) != null){
+            stringBuilder.append(line + "_");
+        }
+        return stringBuilder.toString();
     }
 
     private void handleActionGetNews(ResultReceiver receiver) {
         //TODO скачать данные или взять из хранилища и послать send у receiver
         Log.e(TAG, "handleActionGetNews()");
-        Storage storage = Storage.getInstance(this);
-        String topic = storage.loadCurrentTopic();
-        Bundle data = loadData(topic);
+        Bundle data = loadData();
         receiver.send(1, data);
     }
 }

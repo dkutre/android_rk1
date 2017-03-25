@@ -14,15 +14,7 @@
         tools:layout_editor_absoluteX="8dp">
 
         <TextView
-            android:id="@+id/tv_news_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-        <TextView
-            android:id="@+id/tv_news_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-        <TextView
-            android:id="@+id/tv_news_date"
+            android:id="@+id/tv_price"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
@@ -37,18 +29,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Refresh" />
-
-        <Button
-            android:id="@+id/btn_on_background_upd"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="update in background"/>
-
-        <Button
-            android:id="@+id/btn_off_background_upd"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="dont update in background"/>
 
     </LinearLayout>
     

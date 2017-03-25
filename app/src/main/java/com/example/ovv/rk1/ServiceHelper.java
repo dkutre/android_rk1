@@ -28,7 +28,7 @@ public class ServiceHelper {
     }
 
     public interface NewsResultListener {
-        void checkResult(boolean resultCode, String name, String text, Long date);
+        void checkResult(boolean resultCode);
     }
     //TODO функциz загрузки новостей
     int loadNews(final Context context, final  NewsResultListener listener) {

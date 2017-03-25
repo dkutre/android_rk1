@@ -31,12 +31,9 @@ public class NewsResultReceiver extends ResultReceiver {
         if (listener != null) {
             final boolean success = (resultCode == NewsIntentService.RESULT_SUCCESS);
             if (success) {
-                final String name = (resultData.getString(NewsIntentService.EXTRA_NEWS_NAME_RESULT));
-                final String text = (resultData.getString(NewsIntentService.EXTRA_NEWS_TEXT_RESULT));
-                final long date = (resultData.getLong(NewsIntentService.EXTRA_NEWS_DATE_RESULT));
-                listener.checkResult(success, name, text, date);
+                listener.checkResult(success);
             } else {
-                listener.checkResult(success, resultData.getString(NewsIntentService.EXTRA_NEWS_RESULT), "ERROR", 0L);
+                listener.checkResult(success);
             }
         }
         ServiceHelper.getInstance().removeListener(requestId_);
